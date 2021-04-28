@@ -1,0 +1,44 @@
+<div class="abrir-modal animacion fadeIn" *ngIf="modalService.modal">
+  <div class="modal" tabindex="-1" *ngIf="modalService.modal" style="display:block">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{{titulo}}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" (click)="cerrarModal()" ></button>
+        </div>
+        <div class="modal-body">
+          <div class="container">
+            <div class="row" *ngIf="cliente">
+                <div class="col-sm">
+                  <ul class="list-group text-dark mb-4" >
+                    <li class="list-group-item active">{{cliente.nombre}} {{cliente.apellido}}</li>
+                    <li class="list-group-item">{{cliente.email}}</li>
+                    <li class="list-group-item">{{cliente.createAt | date:'fullDate'}}</li>
+                    <li class="list-group-item">{{cliente.region.nombre}}</li>
+                  </ul>
+                  <div>
+                    <label for="formFileLg" class="form-label">Cargar Foto</label>
+                    <input class="form-control form-control-lg" (change)="seleccionarFoto($event)" [(ngModel)]="imagenSeleccionada" id="formFileLg" type="file">
+                  </div>
+                  <div class="py-2">
+                      <button type="button" class="btn btn-light" [disabled]="!imagenSeleccionada" (click)="subirFoto()">Subir</button>
+                  </div>
+                  <div class="progress" *ngIf="progreso > 0">
+                    <div class="progress-bar progress-bar-striped" role="progressbar" [ngStyle]="{width:progreso+'%'}" attr.aria-valuenow="{{progreso}}" aria-valuemin="0" aria-valuemax="100">
+                      {{ progreso }} %
+                    </div>
+                  </div>
+                </div>
+                <div class="col-sm">
+                  <img src="http://localhost:8080/api/clientes/uploads/img/{{cliente.foto}}"  alt="{{cliente.foto}}" class="rounded img-thumbnail" *ngIf="cliente?.foto"/>
+                </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="cerrarModal()" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
