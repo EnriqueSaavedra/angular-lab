@@ -16,11 +16,11 @@
                     <li class="list-group-item">{{cliente.createAt | date:'fullDate'}}</li>
                     <li class="list-group-item">{{cliente.region.nombre}}</li>
                   </ul>
-                  <div>
+                  <div *ngIf="authService.hasRole('ROLE_ADMIN')">
                     <label for="formFileLg" class="form-label">Cargar Foto</label>
                     <input class="form-control form-control-lg" (change)="seleccionarFoto($event)" [(ngModel)]="imagenSeleccionada" id="formFileLg" type="file">
                   </div>
-                  <div class="py-2">
+                  <div *ngIf="authService.hasRole('ROLE_ADMIN')" class="py-2">
                       <button type="button" class="btn btn-light" [disabled]="!imagenSeleccionada" (click)="subirFoto()">Subir</button>
                   </div>
                   <div class="progress" *ngIf="progreso > 0">

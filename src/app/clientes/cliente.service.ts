@@ -1,10 +1,9 @@
 import { Injectable } from '@angular/core';
-import { formatDate, DatePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { Cliente } from './cliente';
 import { Observable,throwError } from 'rxjs';
-import { HttpClient,HttpEvent,HttpHeaders, HttpRequest } from '@angular/common/http';
+import { HttpClient,HttpEvent, HttpRequest } from '@angular/common/http';
 import { map, catchError, tap } from 'rxjs/operators';
-import swal from 'sweetalert2';
 import { Router } from '@angular/router';
 import { Region } from './region';
 import { AuthService } from '../usuarios/auth.service';
@@ -14,13 +13,12 @@ import { AuthService } from '../usuarios/auth.service';
 @Injectable(  )
 export class ClienteService {
 
-  private httpHeaders:HttpHeaders = new HttpHeaders({'Content-type':'application/json'});
   private urlEndpoint:string = 'http://localhost:8080/api/clientes';
 
   constructor(private http: HttpClient,
               private router: Router,
               private authService: AuthService) { }
-
+  /* Ahora se maneja con interceptor
   private agregarAuthorizationHeader(){
     let token = this.authService.token;
     if(token != null){
@@ -28,20 +26,13 @@ export class ClienteService {
     }
     return this.httpHeaders;
   }
-
-  private isNoAutorizado(e):boolean{
-    if(e.status == 401 || e.status == 403){
-      this.router.navigate(['/login']);
-      return true;
-    }
-    return false;
-  }
+  */
 
   getClientes(page: number): Observable<any>{
     //return of(CLIENTES);
     //return this.http.get<Cliente[]>(this.urlEndpoint);
     console.log(page);
-    return this.http.get(`${this.urlEndpoint}/page/${page}`,{headers:this.agregarAuthorizationHeader()}).pipe(
+    return this.http.get(`${this.urlEndpoint}/page/${page}`).pipe(
       tap((response: any) => {
         //el map ya cambió el valor de response a Cliente[]
         (response.content as Cliente[]).forEach(
@@ -65,15 +56,8 @@ export class ClienteService {
   }
 
   create(cliente: Cliente):Observable<any>{
-    return this.http.post<any>(this.urlEndpoint,cliente,{headers:this.agregarAuthorizationHeader()}).pipe(
+    return this.http.post<any>(this.urlEndpoint,cliente).pipe(
       catchError(e => {
-        if(this.isNoAutorizado(e)){
-          return throwError(e);
-        }
-        if(e.status == 400){
-          return throwError(e);
-        }
-        swal.fire('Error al crear',e.error.mensaje,'error');
         return throwError(e);
       })
     );
@@ -82,24 +66,24 @@ export class ClienteService {
   getCliente(id:number):Observable<any>{
     return this.http.get<any>(`${this.urlEndpoint}/${id}`).pipe(
       catchError(e => {
-        if(this.isNoAutorizado(e)){
-          return throwError(e);
+        if(e.status == 401){
+          this.router.navigate(['/clientes']);
         }
-        this.router.navigate(['/clientes']);
-        swal.fire('Error al editar',e.error.mensaje,'error');
+        if(e.error.mensaje){
+          console.error(e.error.mensaje)
+        }
         return throwError(e);
       })
     );
   }
 
   update(cliente: Cliente):Observable<Cliente>{
-    return this.http.put(`${this.urlEndpoint}/${cliente.id}`,cliente,{headers:this.agregarAuthorizationHeader()}).pipe(
+    return this.http.put(`${this.urlEndpoint}/${cliente.id}`,cliente).pipe(
       map( (response:any) => response.cliente as Cliente),
       catchError(e => {
-        if(this.isNoAutorizado(e)){
-          return throwError(e);
+        if(e.error.mensaje){
+          console.error(e.error.mensaje)
         }
-        swal.fire('Error al Editar',e.error.mensaje,'error');
         return throwError(e);
       })
     );
@@ -107,12 +91,11 @@ export class ClienteService {
 
 
   delete(id: number):Observable<any>{
-    return this.http.delete<any>(`${this.urlEndpoint}/${id}`,{headers:this.agregarAuthorizationHeader()}).pipe(
+    return this.http.delete<any>(`${this.urlEndpoint}/${id}`).pipe(
       catchError(e => {
-        if(this.isNoAutorizado(e)){
-          return throwError(e);
+        if(e.error.mensaje){
+          console.error(e.error.mensaje)
         }
-        swal.fire('Error al eliminar',e.error.mensaje,'error');
         return throwError(e);
       })
     );
@@ -123,29 +106,18 @@ export class ClienteService {
     let formData = new FormData();
     formData.append('archivo',archivo);
     formData.append('id',id);
-
-    let httpHeaders = new HttpHeaders();
-    let token = this.authService.token;
-    if(token != null){
-      httpHeaders = httpHeaders.append('token',`Bearer ${token}`);
-    }
-
     const req = new HttpRequest('POST', `${this.urlEndpoint}/upload`,formData, {
-      reportProgress: true,
-      headers: httpHeaders
+      reportProgress: true
     });
-    return this.http.request(req).pipe(
-      catchError(e => {
-          this.isNoAutorizado(e);
-          return throwError(e);
-      })
-    );
+    return this.http.request(req);
   }
 
   getRegiones():Observable<Region[]>{
-    return this.http.get<Region[]>(`${this.urlEndpoint}/regiones`,{headers:this.agregarAuthorizationHeader()}).pipe(
+    return this.http.get<Region[]>(`${this.urlEndpoint}/regiones` ).pipe(
       catchError(e=>{
-        this.isNoAutorizado(e);
+        if(e.error.mensaje){
+          console.error(e.error.mensaje)
+        }
         return throwError(e);
       })
     );
